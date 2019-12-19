@@ -119,14 +119,6 @@ func WriteString(w io.Writer, str string) error {
 	return nil
 }
 
-func readFile(file string) ([]byte, error) {
-	data, err := ioutil.ReadFile(file)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
-}
-
 var password string
 func handleConnection(sess quic.Session) {
 	// defer sess.Close()
@@ -152,7 +144,8 @@ func handleConnection(sess quic.Session) {
 		log.Println(err)
 		return
 	}
-	buf, err := readFile(path)
+	
+	buf, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Println(err.Error())
 		return
