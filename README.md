@@ -1,4 +1,9 @@
-# quic-wget
+# QUIC-wget
+
+## Description
+QUIC-wget is utility to transfer files over QUIC (which uses UDP, and uses checksums),
+which was built to download files (especially backups) over unstable network with frequent
+timeouts/low bandwith. Usually it's 3x faster than TCP/SFTP/etc connection for us.
 
 ## Server installation & start (prebuilt)
 
@@ -94,7 +99,7 @@ It highly recommended to do this on unstable connections.
 ### Windows
 
 1. Download and install Go from https://golang.org/dl/
-1. Download [server source code](https://github.com/MoofMonkey/quic-wget/raw/master/client.go)
+1. Download [client source code](https://github.com/MoofMonkey/quic-wget/raw/master/client.go)
 2. Open cmd/PowerShell in the same folder (or open it by Win+X and cd to folder with executable)
 3.
 ```sh
