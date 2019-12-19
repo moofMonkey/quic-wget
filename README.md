@@ -3,7 +3,7 @@
 ## Description
 QUIC-wget is utility to transfer files over QUIC (which uses UDP, and uses checksums).
 
-QUIC-wget which was built to download files (especially backups) over unstable network with frequent
+QUIC-wget was built to download files (especially backups) over unstable network with frequent
 timeouts/low bandwith. Usually it's 3x faster 2-3 times than TCP/SFTP/etc connection for us.
 
 ## Server installation & start (prebuilt)
