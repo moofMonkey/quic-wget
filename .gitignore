@@ -1,1 +1,3 @@
-bin/
+.idea/
+quic-wget
+quic-wget.exe

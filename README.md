@@ -4,28 +4,28 @@
 QUIC-wget is utility to transfer files over QUIC (which uses UDP, and uses checksums).
 
 QUIC-wget was built to download files (especially backups) over unstable network with frequent
-timeouts/low bandwith. Usually it's 3x faster 2-3 times than TCP/SFTP/etc connection for us.
+timeouts/low bandwidth. Usually it's 2-3x faster than TCP/SFTP connection for us.
 
 ## Server installation & start (prebuilt)
 
 ### Linux
 ```sh
-wget https://github.com/MoofMonkey/quic-wget/releases/download/1.0/server
-chmod +x ./server
-./server --password="your_super_secret_password" --target="0.0.0.0:12345"
+wget https://github.com/MoofMonkey/quic-wget/releases/download/2.0/quic-wget
+chmod +x ./quic-wget
+./quic-wget --password="your_super_secret_password" --target="0.0.0.0:12345"
 ```
 You must change 12345 (port) and password example to some random generated ones.
 
-Also you can run server in screen by adding "screen " in front of "./server".
-It highly recommended to do this on unstable connections.
+You can also run server in screen by adding "screen " in front of "./quic-wget".
+It is highly recommended doing this on unstable connections.
 
 ### Windows
 
-1. Download [server executable](https://github.com/MoofMonkey/quic-wget/releases/download/1.0/server.exe)
+1. Download [quic-wget executable](https://github.com/MoofMonkey/quic-wget/releases/download/2.0/quic-wget.exe)
 2. Open cmd/PowerShell in the same folder (or open it by Win+X and cd to folder with executable)
 3.
 ```sh
-.\server --password="your_super_secret_password" --target="0.0.0.0:12345"
+.\quic-wget --password="your_super_secret_password" --target="0.0.0.0:12345"
 ```
 You must change 12345 (port) and password example to some random generated ones.
 
@@ -33,79 +33,18 @@ You must change 12345 (port) and password example to some random generated ones.
 
 ### Linux
 ```sh
-wget https://github.com/MoofMonkey/quic-wget/releases/download/1.0/client
-chmod +x ./client
-./client --password="your_super_secret_password" --target="8.8.8.8:12345" --downloadPath="/backup.tar.bz2" --localPath="backup.tar.bz2"
+wget https://github.com/MoofMonkey/quic-wget/releases/download/2.0/quic-wget
+chmod +x ./quic-wget
+./quic-wget --password="your_super_secret_password" --target="8.8.8.8:12345" --downloadPath="/backup.tar.bz2" --localPath="backup.tar.bz2"
 ```
 You must change 12345 (port) and password example to ones used on server.
 
 ### Windows
 
-1. Download [client executable](https://github.com/MoofMonkey/quic-wget/releases/download/1.0/client.exe)
+1. Download [quic-wget executable](https://github.com/MoofMonkey/quic-wget/releases/download/2.0/quic-wget.exe)
 2. Open cmd/PowerShell in the same folder (or open it by Win+X and cd to folder with executable)
 3.
 ```sh
-.\client --password="your_super_secret_password" --target="8.8.8.8:12345"  --downloadPath="/backup.tar.bz2" --localPath="backup.tar.bz2"
-```
-You must change 12345 (port) and password example to some random generated ones.
-
-
-## Server installation & start (***NOT*** prebuilt)
-
-### Linux
-```sh
-wget https://github.com/MoofMonkey/quic-wget/raw/master/download_server.sh
-chmod +x download_server.sh
-./download_server.sh
-./server --password="your_super_secret_password" --target="0.0.0.0:12345"
-```
-You must change 12345 (port) and password example to some random generated ones.
-
-Also you can run server in screen by adding "screen " in front of "./server".
-It highly recommended to do this on unstable connections.
-
-### Windows
-
-1. Download and install Go from https://golang.org/dl/
-1. Download [server source code](https://github.com/MoofMonkey/quic-wget/raw/master/server.go)
-2. Open cmd/PowerShell in the same folder (or open it by Win+X and cd to folder with executable)
-3.
-```sh
-go get github.com/lucas-clemente/quic-go
-go build server.go
-.\server --password="your_super_secret_password" --target="0.0.0.0:12345"
-```
-You must change 12345 (port) and password example to some random generated ones.
-
-## Client installation & start (***NOT*** prebuilt)
-
-### Linux
-```sh
-wget https://dl.google.com/go/go1.13.5.linux-amd64.tar.gz
-tar -C /usr/local -xzf go1.13.5.linux-amd64.tar.gz
-rm -rf go1.13.5.linux-amd64.tar.gz
-wget https://github.com/MoofMonkey/quic-wget/raw/master/client.go
-export GOROOT=/usr/local/go/bin
-export PATH=$PATH:$GOROOT
-go get github.com/lucas-clemente/quic-go
-go build client.go
-chmod +x client # in case it won't set execute flag
-./client --password="your_super_secret_password" --target="8.8.8.8:12345" --downloadPath="/backup.tar.bz2" --localPath="backup.tar.bz2"
-```
-You must change 12345 (port) and password example to some random generated ones.
-
-Also you can run server in screen by adding "screen " in front of "./server".
-It highly recommended to do this on unstable connections.
-
-### Windows
-
-1. Download and install Go from https://golang.org/dl/
-1. Download [client source code](https://github.com/MoofMonkey/quic-wget/raw/master/client.go)
-2. Open cmd/PowerShell in the same folder (or open it by Win+X and cd to folder with executable)
-3.
-```sh
-go get github.com/lucas-clemente/quic-go
-go build server.go
-.\client --password="your_super_secret_password" --target="8.8.8.8:12345" --downloadPath="/backup.tar.bz2" --localPath="backup.tar.bz2"
+.\quic-wget --password="your_super_secret_password" --target="8.8.8.8:12345"  --downloadPath="/backup.tar.bz2" --localPath="backup.tar.bz2"
 ```
 You must change 12345 (port) and password example to some random generated ones.
