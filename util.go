@@ -2,7 +2,10 @@ package main
 
 import (
 	"encoding/binary"
+	"github.com/lucas-clemente/quic-go"
 	"io"
+	"log"
+	"os"
 )
 
 func readUint8(r io.Reader) (uint8, error) {
@@ -61,4 +64,47 @@ func writeString(w io.Writer, s string) error {
 		return err
 	}
 	return nil
+}
+
+func transferFile(stream quic.Stream, localPath string, download bool) {
+	if download {
+		size, err := readUint64(stream)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		log.Println("Downloading:", size)
+
+		f, err := os.Create(localPath)
+		if err != nil {
+			log.Fatalln("Failed to create file", localPath, err)
+		}
+		defer f.Close()
+
+		if _, err = io.CopyN(f, stream, int64(size)); err != nil {
+			log.Fatalln("Failed to transfer file", err)
+		}
+	} else {
+		f, err := os.Open(localPath)
+		if err != nil {
+			log.Fatalln("Failed to open file", localPath, err)
+			return
+		}
+		defer f.Close()
+
+		stat, err := f.Stat()
+		if err != nil {
+			log.Println("Failed to get file stat", err)
+			return
+		}
+
+		if err = writeUint64(stream, uint64(stat.Size())); err != nil {
+			log.Println("Failed to write file size", err)
+			return
+		}
+
+		if _, err = io.CopyN(stream, f, stat.Size()); err != nil {
+			log.Fatalln("Failed to transfer file", err)
+		}
+	}
 }

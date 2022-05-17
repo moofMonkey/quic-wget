@@ -9,14 +9,12 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/lucas-clemente/quic-go"
-	"io"
 	"log"
 	"math/big"
-	"os"
 	"time"
 )
 
-func handleConnection(sess quic.Connection, password string) {
+func handleConnection(sess quic.Connection, password string, reverse bool) {
 	// defer sess.Close()
 	dur, _ := time.ParseDuration("10h")
 	ctx, cancel := context.WithTimeout(context.Background(), dur)
@@ -36,32 +34,13 @@ func handleConnection(sess quic.Connection, password string) {
 		log.Println("Incorrect password specified:", clientPassword)
 		return
 	}
-	path, err := readString(stream)
+	localPath, err := readString(stream)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	f, err := os.Open(path)
-	if err != nil {
-		log.Fatalln("Failed to open file", path, err)
-		return
-	}
-
-	stat, err := f.Stat()
-	if err != nil {
-		log.Println("Failed to get file stat", err)
-		return
-	}
-
-	if err = writeUint64(stream, uint64(stat.Size())); err != nil {
-		log.Println("Failed to write file size", err)
-		return
-	}
-
-	if _, err = io.CopyN(stream, f, stat.Size()); err != nil {
-		log.Fatalln("Failed to transfer file", err)
-	}
+	transferFile(stream, localPath, reverse)
 }
 
 // Setup a bare-bones TLS config for the server
@@ -88,7 +67,7 @@ func generateTLSConfig() *tls.Config {
 	}
 }
 
-func runServer(target, password string) {
+func runServer(target, password string, reverse bool) {
 	var conf quic.Config
 	dur, _ := time.ParseDuration("10h")
 	conf.HandshakeIdleTimeout = dur
@@ -107,6 +86,6 @@ func runServer(target, password string) {
 			log.Fatalln(err)
 		}
 		cancel()
-		go handleConnection(sess, password)
+		go handleConnection(sess, password, reverse)
 	}
 }
