@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/binary"
-	"github.com/lucas-clemente/quic-go"
 	"io"
 	"log"
 	"os"
@@ -66,9 +65,9 @@ func writeString(w io.Writer, s string) error {
 	return nil
 }
 
-func transferFile(stream quic.Stream, localPath string, download bool) {
+func transferFile(conn io.ReadWriter, localPath string, download bool) {
 	if download {
-		size, err := readUint64(stream)
+		size, err := readUint64(conn)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -81,7 +80,7 @@ func transferFile(stream quic.Stream, localPath string, download bool) {
 		}
 		defer f.Close()
 
-		if _, err = io.CopyN(f, stream, int64(size)); err != nil {
+		if _, err = io.CopyN(f, conn, int64(size)); err != nil {
 			log.Fatalln("Failed to transfer file", err)
 		}
 	} else {
@@ -98,12 +97,12 @@ func transferFile(stream quic.Stream, localPath string, download bool) {
 			return
 		}
 
-		if err = writeUint64(stream, uint64(stat.Size())); err != nil {
+		if err = writeUint64(conn, uint64(stat.Size())); err != nil {
 			log.Println("Failed to write file size", err)
 			return
 		}
 
-		if _, err = io.CopyN(stream, f, stat.Size()); err != nil {
+		if _, err = io.CopyN(conn, f, stat.Size()); err != nil {
 			log.Fatalln("Failed to transfer file", err)
 		}
 	}

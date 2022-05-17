@@ -7,25 +7,16 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
-	"fmt"
 	"github.com/lucas-clemente/quic-go"
+	"io"
 	"log"
 	"math/big"
 	"time"
 )
 
-func handleConnection(sess quic.Connection, password string, reverse bool) {
-	// defer sess.Close()
-	dur, _ := time.ParseDuration("10h")
-	ctx, cancel := context.WithTimeout(context.Background(), dur)
-	defer cancel()
-	stream, err := sess.AcceptStream(ctx)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	// defer stream.Close()
-	clientPassword, err := readString(stream)
+func handleConnection(conn io.ReadWriteCloser, password string, reverse bool) {
+	defer conn.Close()
+	clientPassword, err := readString(conn)
 	if err != nil {
 		log.Println(err)
 		return
@@ -34,13 +25,13 @@ func handleConnection(sess quic.Connection, password string, reverse bool) {
 		log.Println("Incorrect password specified:", clientPassword)
 		return
 	}
-	localPath, err := readString(stream)
+	localPath, err := readString(conn)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	transferFile(stream, localPath, reverse)
+	transferFile(conn, localPath, reverse)
 }
 
 // Setup a bare-bones TLS config for the server
@@ -67,25 +58,45 @@ func generateTLSConfig() *tls.Config {
 	}
 }
 
-func runServer(target, password string, reverse bool) {
-	var conf quic.Config
-	dur, _ := time.ParseDuration("10h")
-	conf.HandshakeIdleTimeout = dur
-	conf.MaxIdleTimeout = dur
-	listener, err := quic.ListenAddr(target, generateTLSConfig(), &conf)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer listener.Close()
-
-	for {
-		ctx, cancel := context.WithTimeout(context.Background(), dur)
-		sess, err := listener.Accept(ctx)
+func runServer(target, password string, reverse, tcp bool) {
+	if !tcp {
+		var conf quic.Config
+		dur, _ := time.ParseDuration("10h")
+		conf.HandshakeIdleTimeout = dur
+		conf.MaxIdleTimeout = dur
+		listener, err := quic.ListenAddr(target, generateTLSConfig(), &conf)
 		if err != nil {
 			log.Fatalln(err)
 		}
-		cancel()
-		go handleConnection(sess, password, reverse)
+		defer listener.Close()
+
+		for {
+			ctx, cancel := context.WithTimeout(context.Background(), dur)
+			sess, err := listener.Accept(ctx)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			stream, err := sess.AcceptStream(ctx)
+			cancel()
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			go handleConnection(stream, password, reverse)
+		}
+	} else {
+		listener, err := tls.Listen("tcp", target, generateTLSConfig())
+		if err != nil {
+			log.Fatalln(err)
+		}
+		defer listener.Close()
+
+		for {
+			sess, err := listener.Accept()
+			if err != nil {
+				log.Fatalln(err)
+			}
+			go handleConnection(sess, password, reverse)
+		}
 	}
 }

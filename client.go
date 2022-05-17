@@ -4,11 +4,12 @@ import (
 	"context"
 	"crypto/tls"
 	"github.com/lucas-clemente/quic-go"
+	"io"
 	"log"
 	"time"
 )
 
-func runClient(target, password, remotePath, localPath string, reverse bool) {
+func runClient(target, password, remotePath, localPath string, reverse, tcp bool) {
 	tlsConf := &tls.Config{
 		InsecureSkipVerify: true,
 		NextProtos:         []string{"quic-wget"},
@@ -16,27 +17,33 @@ func runClient(target, password, remotePath, localPath string, reverse bool) {
 	dur, _ := time.ParseDuration("10h")
 	ctx, cancel := context.WithTimeout(context.Background(), dur)
 	defer cancel()
-	var conf quic.Config
-	conf.HandshakeIdleTimeout = dur
-	conf.MaxIdleTimeout = dur
-	session, err := quic.DialAddrContext(ctx, target, tlsConf, &conf)
-	if err != nil {
-		log.Fatalln(err)
+	var conn io.ReadWriteCloser
+	var err error
+	if !tcp {
+		var conf quic.Config
+		conf.HandshakeIdleTimeout = dur
+		conf.MaxIdleTimeout = dur
+		session, err := quic.DialAddrContext(ctx, target, tlsConf, &conf)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		if conn, err = session.OpenStreamSync(ctx); err != nil {
+			log.Fatalln(err)
+		}
+	} else {
+		if conn, err = tls.Dial("tcp", target, tlsConf); err != nil {
+			log.Fatalln(err)
+		}
 	}
-
-	stream, err := session.OpenStreamSync(ctx)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer stream.Close()
+	defer conn.Close()
 
 	log.Println("Session start")
 
-	if err := writeString(stream, password); err != nil {
+	if err := writeString(conn, password); err != nil {
 		log.Fatalln("Failed to write password", err)
 	}
-	if err := writeString(stream, remotePath); err != nil {
+	if err := writeString(conn, remotePath); err != nil {
 		log.Fatalln("Failed to write remotePath", err)
 	}
-	transferFile(stream, localPath, !reverse)
+	transferFile(conn, localPath, !reverse)
 }
